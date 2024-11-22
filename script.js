@@ -2274,7 +2274,7 @@ $hiveFilterCheckboxes.forEach(checkbox => {
 */
 
 document.querySelector('.view-hive-btn').addEventListener('click', e => {
-    window.open('/add-map-markers-to-page/hive.html');
+    window.open(`${window.location.pathname}hive.html`);
 }); 
 
 
