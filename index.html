@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title> 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/alertify.min.css"/>
+    <link rel="stylesheet" href="styles.css">  
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMmi6kGAOGfMzK4CBvNiVBB7T6OjGbsU4&libraries=places&v=weekly&language=en" ></script>   
+    <style>
+        .hive-filters.hide {
+            display: none;
+        }
+
+        .hive-filters.hidden,
+        .toggle-hive-filters-wrapper.hidden {
+            display: none;
+        }
+
+        .view-hive-btn {
+            /* padding: 5px 70px;  */
+            padding: 15px 100px;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+
+        .trip-select {
+            width: 350px;
+            height: 35px;
+        }
+
+        .user-prompts {
+            height: 200px;
+            overflow: auto;
+            display: flex;
+            /* justify-content: center; */
+            align-items: center;
+            flex-direction: column; 
+            /* text-align: center; */
+            border: 1px solid;
+            border-right: 0;
+            border-bottom: 0;
+            border-left: 0;
+        }
+
+        .user-prompt {
+            /* margin: 10px 0;  */
+            padding: 20px 0;
+            border: 1px dotted;
+            border-top: 0;
+            border-left: 0;
+            border-right: 0;
+        }
+
+        .user-prompt.hidden,
+        .user-prompt-load.hidden {
+            display: none;
+        }
+
+        .user-prompt-load {
+            margin-top: 10px;
+        }
+
+        /* loader */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid gray;
+            width: 40px;
+            height: 40px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+
+        /* Safari */
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>   
+</head>
+<body> 
+    <div class="top-section"> 
+        <div class="section reset-justify">
+            <label for="user-email">Email:</label> 
+            <input type="text" placeholder="user@mail.com" class="user-email">
+            <div class="no-user"></div>
+        </div>
+        <div class="section">
+            <select name="trip-select" id="trip-select" class="trip-select">
+                <option value="*">Select trip...</option> 
+            </select>
+        </div>
+        <div class="section travel-dates"> 
+            <div class="user-travel-info">
+                <input type="text" class="travel-date arrival" placeholder="Travel Dates">
+                <input type="text" class="user-hotel" placeholder="User Hotel">
+                <!-- <input type="text" class="travel-date departure" placeholder="Departure Date"> -->
+            </div>
+            <!-- <div class="user-hotel-div">
+                <input type="text" class="user-hotel" placeholder="User Hotel">
+            </div> -->
+            <div class="user-trip-data">
+                <div class="trip-data">
+                    <label class="title" for="trip-notes">Trip Notes</label>
+                    <textarea name="trip-notes" class="trip-notes" cols="30" rows="10"></textarea>
+                </div>
+                <!-- <input type="button" value="Submit" class="save-trip-notes"> -->
+                <div class="trip-data">
+                    <label class="title" for="user-prompts">User Prompts</label>
+                    <!-- <textarea name="user-prompts" class="user-prompts" cols="30" rows="10"></textarea>  -->
+                    <div class="user-prompts">
+                        <div class="user-prompt hidden"></div>
+                        <div class="user-prompt-load hidden"></div>
+                    </div>
+                </div> 
+            </div>
+        </div> 
+    </div>
+    <div class="section header">
+        <div class="header--left">
+            <!-- <input type="button" value="+ Day" class="add-day"> -->
+            <label for="days-select" class="days-select-label">Select Day:</label>
+            <select name="days" id="days-select">
+                <option value="*">All</option> 
+                <!-- <option value="day-1">Day 1</option>  -->
+                <option class="add-day-option" value="add-day">+ Add Day</option>
+            </select>
+        </div>
+        <input type="text" class="user-input" placeholder="Enter Address">
+        <!-- <div>
+            <input type="checkbox" name="add-to-hive" id="add-to-hive" class="add-to-hive">
+            <label for="add-to-hive">Add to hive</label>
+        </div> -->
+    </div>
+    <!-- <div class="section"> 
+        <input type="button" value="View Hourly" class="get-resource-btn view-hourly">   
+    </div> -->
+    <div class="section"> 
+        <div class="side-bar">
+            <div class="day-events">
+                <div class="day-event day-0-event hide" data-clone="day-event"> 
+                    <div class="day-head">
+                        <span class="header-text">Day 1</span>  
+                        <img class="remove-day" src="Imgs/x-24.png" alt="">
+                    </div>
+                    <div class="day-top-buttons">
+                        <input class="sort-events" type="button" value="Sort">
+                        <div>
+                            <select name="day-time-sections" id="day-time-sections" class="day-time-sections hide">
+                                <option value="morning">Morning</option>
+                                <option value="afternoon">Afternoon</option>
+                                <option value="evening">Evening</option>
+                            </select>
+                            <input class="view-hourly" type="button" value="View Hourly">
+                        </div>
+                    </div>
+
+                    <div class="single-event hide" id="event-1" draggable="true" data-clone="single-event">
+                        <select name="event-time-of-day" id="event-time-of-day" class="event-time-of-day">
+                            <option value="morning">Morning</option>
+                            <option value="afternoon">Afternoon</option>
+                            <option value="evening">Evening</option>
+                        </select> 
+                        <div class="location-time">
+                            <input type="time" class="event-exact-time-of-day start hide">
+                            <input type="time" class="event-exact-time-of-day end hide">
+                            <span class="location-duration hide"></span> 
+                        </div>
+                        <input type="text" class="day-text width-80"> 
+                        <!-- <div class="expand-more-info" title="More location info"><i class="arrow right"></i><i class="arrow right margin-right-3px"></i></div> -->
+                        <img class="expand-more-info" title="More location info" src="Imgs/right-arrow.png"> 
+                        <div class="location-more-info hide"> 
+                            <textarea class="more-info" placeholder="More location info..."></textarea>
+                            <div class="toggle-reservation">
+                                <input type="button" class="toggle-reservation" value="Add Reservation">
+                                <img src="Imgs/fat-arrow-right.png" class="toggle-reservation-img"> 
+                            </div> 
+                            <div class="location-reservation hide"> 
+                                <div>Reservation</div>
+                                <input type="text" class="reserve-time" data-pick-date="true" placeholder="add reservation time" readonly="readonly">
+                                <input type="text" class="reserve-info" placeholder="add reservation info"></div>
+                            </div>
+                        <img class="remove-marker" src="Imgs/x.png" alt="">
+                        <img class="get-directions" src="Imgs/directions.png" alt=""> 
+                    </div>  
+                    <div class="all-activities full-day"></div> 
+                    <div class="modal hide"> 
+                        <div class="modal-content">
+                            <img src="Imgs/x.png" alt="close modal" class="close-modal">
+                        </div>
+                    </div>
+                    <div class="agent-notes">
+                        <div class="toggle-notes">
+                            <input type="button" class="toggle-notes-inp" value="Add Notes">
+                            <img src="Imgs/double-right.png" class="toggle-notes-img"> 
+                        </div> 
+                        <textarea class="agent-notes-textarea hide"></textarea>
+                    </div>
+                </div>
+                <div class="all-days"></div> 
+                <div class="no-days">fetching...</div>  
+                <div class="show-removed hide"><input type="button" value="Show removed days >>"></div>
+                <div class="removed-days hide">
+                    <div class="heading">Removed Days</div>
+                    <div class="all-days"></div>
+                </div>
+            </div> 
+        </div> 
+        <div id="map"></div>
+        <div class="map-results-overlay hide">      
+            <div class="map-results-content">
+                <span class="close">&times;</span>  
+                <div class="results-header">Select one or more <span class="user-search-result"></span>(s) to add</div>   
+                <div class="map-results"></div>
+            </div> 
+        </div>
+    </div>
+    <div class="section">
+        <input type="button" value="View Hive" class="view-hive-btn">
+    </div>
+    <div class="section align-top">
+        <div class="khonsu-data reservations">
+            <div class="reservation sample-reservation hide">
+                <label class="day-text center-label">Reservations</label>
+                <div class="reserves">
+                    <div class="reserve">
+                        <div>
+                            <label>Reserve Label</label> 
+                        </div>
+                        <div>
+                            <input type="text" class="reserve-time" data-pick-date="true" placeholder="add reservation time">
+                        </div>
+                        <div>
+                            <input type="text" class="reserve-info" placeholder="add reservation info"> 
+                            <img class="remove-reservation" src="Imgs/x.png" alt=""> 
+                        </div>
+                    </div>
+                </div>
+                <!-- <input type="button" value="Add Reservation" class="add-reservation"> -->
+                <!-- <input type="button" value="Submit" class="save-khonsu-data save-reservations"> -->
+            </div>
+            <div class="all-reservations"></div>
+        </div> 
+        <div class="khonsu-data map-url">
+            <label for="map-url-link">Map Url</label>
+            <div class="map-url-link">
+                <input type="text">
+            </div>
+            <input type="button" value="Submit" class="save-khonsu-data save-map-url">
+        </div>
+        <div class="khonsu-data map-url-qrcode">
+            <label for="map-url-qr">QR Code</label>
+            <div class="map-url-qr"></div>
+            <!-- <input type="button" value="Submit" class="save-khonsu-data save-qrcode"> -->
+            <div><i>Auto-generated from Map URL</i></div> 
+        </div>
+    </div>
+    <div class="section center-content"> 
+
+    </div>
+    <!-- <div class="section notes">
+        <div class="khonsu-data khonsu-notes">
+            <label class="knotes-title" for="knotes">Khonsu Notes Day 1</label>
+            <textarea name="knotes" class="knotes" cols="30" rows="10"></textarea>
+            <input type="button" value="Submit" class="save-khonsu-data save-khonsu-notes">
+        </div>
+    </div> -->
+    
+    <div class="section pass-section"> 
+        <div class="title">Passes</div>
+        <div class="passes">
+            <div class="passes-sec">
+                <div class="pass">
+                    <input type="checkbox" name="the-edge" id="the-edge" class="pass-check">
+                    <label for="the-edge">The Edge</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="hop-on-bus" id="hop-on-bus" class="pass-check">
+                    <label for="hop-on-bus">Hop On Bus</label>
+                </div>
+                <div class="pass"> 
+                    <input type="checkbox" name="circle-line" id="circle-line" class="pass-check">
+                    <label for="circle-line">Circle Line</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="esb" id="esb" class="pass-check">
+                    <label for="esb">ESB</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="_911museum" id="_911museum" class="pass-check">
+                    <label for="_911museum">911 Museum</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="_1world" id="_1world" class="pass-check">
+                    <label for="_1world">1 World</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="tor" id="tor" class="pass-check">
+                    <label for="tor">ToR</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="libby" id="libby" class="pass-check">
+                    <label for="libby">Libby</label>
+                </div>
+                <div class="pass"> 
+                    <input type="checkbox" name="intrepid" id="intrepid" class="pass-check">
+                    <label for="intrepid">Intrepid</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="moma" id="moma" class="pass-check">
+                    <label for="moma">MoMA</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="guggenhiem" id="guggenhiem" class="pass-check">
+                    <label for="guggenhiem">Guggenhiem</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="rise-ny" id="rise-ny" class="pass-check">
+                    <label for="rise-ny">Rise NY</label>
+                </div>
+            </div>
+            <div class="passes-sec">
+                <div class="pass">
+                    <input type="checkbox" name="amnh" id="amnh" class="pass-check">
+                    <label for="amnh">AMNH</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="radio-city-music-hall-tour" id="radio-city-music-hall-tour" class="pass-check">
+                    <label for="radio-city-music-hall-tour">Radio City Music Hall Tour</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="museum-of-broadway" id="museum-of-broadway" class="pass-check">
+                    <label for="museum-of-broadway">Museum Of Broadway</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="central-park-zoo" id="central-park-zoo" class="pass-check">
+                    <label for="central-park-zoo">Central Park Zoo</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="catacombs-by-candleight" id="catacombs-by-candleight" class="pass-check">
+                    <label for="catacombs-by-candleight">Catacombs By Candleight</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="_3-neighborhood-tour" id="_3-neighborhood-tour" class="pass-check">
+                    <label for="_3-neighborhood-tour">3 Neighborhood Tour</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="wall-st-tour" id="wall-st-tour" class="pass-check">
+                    <label for="wall-st-tour">Wall St Tour</label>
+                </div>
+                <div class="pass"> 
+                    <input type="checkbox" name="artechouse" id="artechouse" class="pass-check">
+                    <label for="artechouse">Artechouse</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="coney-island-wonder-wheel" id="coney-island-wonder-wheel" class="pass-check">
+                    <label for="coney-island-wonder-wheel">Coney Island Wonder Wheel</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="madam-tussands" id="madam-tussands" class="pass-check">
+                    <label for="madam-tussands">Madam Tussands</label>
+                </div>
+                <div class="pass">
+                    <input type="checkbox" name="yankee-stadium-tour" id="yankee-stadium-tour" class="pass-check">
+                    <label for="yankee-stadium-tour">Yankee Stadium Tour</label>
+                </div>
+                <div class="pass"> 
+                    <input type="checkbox" name="madison-sq-garden-tour" id="madison-sq-garden-tour" class="pass-check">
+                    <label for="madison-sq-garden-tour">Madison Sq Garden Tour</label>
+                </div>
+            </div>
+        </div>
+        <div class="divider"></div>
+        <div class="results">
+            <div class="passer" data-pass="go-city">
+                <div class="name">Go City: (<span class="pass-count">0</span>)</div>
+                <div class="result-passes">
+                    <div class="result-pass hide">
+                        <span class="text">Sample Pass</span>
+                        <span class="tick hide"></span>
+                        <span class="ex hide"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="passer" data-pass="sightseeing">
+                <div class="name">Sightseeing: (<span class="pass-count">0</span>)</div>
+                <div class="result-passes">
+                    <div class="result-pass hide">
+                        <span class="text">Sample Pass</span>
+                        <span class="tick hide"></span>
+                        <span class="ex hide"></span>
+                    </div>
+                </div>
+            </div> 
+            <div class="passer" data-pass="city-pass">
+                <div class="name">City Pass: (<span class="pass-count">0</span>)</div>
+                <div class="result-passes">
+                    <div class="result-pass hide">
+                        <span class="text">Sample Pass</span>
+                        <span class="tick hide"></span>
+                        <span class="ex hide"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="https://www.flaticon.com/free-icons/new-tab" title="new-tab icons">Get direction icons created by Prosymbols Premium - Flaticon</a>
+    <br><a target="_blank" href="https://icons8.com">Icon by Icons8</a>
+    <br><a href="https://www.freepik.com/icon/bag_12120859#fromView=keyword&page=1&position=21&uuid=d100ea67-23ca-4ba9-acf6-0e722c3639fe">Icon by tuktukdesign</a>
+
+    <!-- <script>
+        (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+          key: "AIzaSyCMmi6kGAOGfMzK4CBvNiVBB7T6OjGbsU4",
+          libraries: "places",
+          v: "weekly",
+          // Use the 'v' parameter to indicate the version to use (weekly, beta, alpha, etc.).
+          // Add other bootstrap parameters as needed, using camel case.
+        });
+      </script> -->
+       
+      
+    <script src="https://apis.google.com/js/api.js"></script>  
+    <script src="https://unpkg.com/@bitjson/qr-code@1.0.2/dist/qr-code.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/alertify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script type="module" src="script.js"></script>  
+    <!-- <script>
+        const CLIENT_ID = '424207365074-g5444q1mhm5n5d04pu563ofqjup3j5e2.apps.googleusercontent.com'; 
+        const API_KEY = 'AIzaSyCMmi6kGAOGfMzK4CBvNiVBB7T6OjGbsU4'; 
+
+        function authenticate() {
+            return gapi.auth2.getAuthInstance()
+            .signIn({scope: "https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets"})
+            .then(function() { console.log("Sign-in successful"); },
+              function(err) { console.error("Error signing in", err); });
+        }
+
+        function loadClient() {
+            gapi.client.setApiKey(API_KEY);
+            return gapi.client.load("https://sheets.googleapis.com/$discovery/rest?version=v4")
+            .then(function() { console.log("GAPI client loaded for API"); },
+              function(err) { console.error("Error loading GAPI client for API", err); });
+        }
+
+        // Make sure the client is loaded and sign-in is complete before calling this method.
+        function execute() {
+            return gapi.client.sheets.spreadsheets.values.append({
+                "spreadsheetId": "1Zj1ae5faA8h7UwHvtYVtKoiA_G3LtQcuTOFV1Evq4BQ",
+                "range": "A1:E1",
+                "includeValuesInResponse": true,
+                "insertDataOption": "INSERT_ROWS",
+                "responseDateTimeRenderOption": "FORMATTED_STRING",
+                "responseValueRenderOption": "UNFORMATTED_VALUE",
+                "valueInputOption": "RAW",
+                "resource": {
+                    "values": [
+                        [
+                            "Yes",
+                            "No",
+                            "Maybe",
+                            "I",
+                            "Don't",
+                            "Know"
+                        ]
+                    ]
+                }
+            })
+            .then(function(response) {
+                // Handle the results here (response.result has the parsed body).
+                console.log("Response", response);
+              },
+              function(err) { console.error("Execute error", err); 
+            });
+        }
+
+        gapi.load("client:auth2", function() {
+            gapi.auth2.init({client_id: CLIENT_ID});
+        });
+    </script> -->
+</body> 
+</html>   

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- <link rel="stylesheet" href="event-list.css"> -->
+
+    <script>
+        // HTMLCanvasElement.prototype.getContext = function(origFn) {
+        //     return function(type, attribs) {
+        //     attribs = attribs || {};
+        //     attribs.preserveDrawingBuffer = true;
+        //     return origFn.call(this, type, attribs);
+        //     };
+        // }(HTMLCanvasElement.prototype.getContext);
+
+        HTMLCanvasElement.prototype.getContext = function(origFn) {
+            return function(type, attribs) {
+                attribs = attribs || {};
+                if (type === 'webgl' || type === 'webgl2') {
+                    attribs.preserveDrawingBuffer = true;
+                }
+                return origFn.call(this, type, attribs);
+            };
+        }(HTMLCanvasElement.prototype.getContext);
+    </script>
+
+    <style>
+        .section {
+    margin: 30px auto; 
+    width: 90%;
+    max-width: 1500px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* outline: 1px dotted red;    */
+    flex-direction: column;
+}
+
+#map {
+    width: 100%; 
+    height: 500px;   
+    /* align-self: start;  */
+} 
+
+
+.day-events {
+    /* outline: 1px dotted yellowgreen;  */
+    width: 90%; 
+    margin-top: 50px;  
+}
+
+.day-event {
+    margin-bottom: 50px; 
+}
+
+.day-event.hide {
+    display: none; 
+}
+
+.day-head {
+    font-size: 18px; 
+    font-weight: bold;  
+    /* text-align: center; */
+}
+
+.single-event {
+    /* border: 1px solid black;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;  */
+    /* height: 20px; 
+    padding-top: 10px;   */
+    position: relative;
+    width: 90%; 
+    margin: 10px 0; 
+}
+
+/* .single-event .day-text { 
+    overflow: hidden; 
+    width: 100%;
+    height: 100%; 
+    /* cursor: pointer;  * /
+}  */
+
+.single-event.hide {
+    display: none;
+}  
+
+/* .single-event:nth-child(3) canvas {
+    visibility: hidden; 
+    pointer-events: none;
+} */
+
+.qrcode.hide {
+    display: none; 
+}
+
+.qr-toggle-wrap {
+    margin-bottom: 20px;
+}
+
+.download-pdf-wrap {
+    margin-bottom: 20px; 
+}
+
+.get-resource-btn {
+    width: 200px;
+    height: 30px; 
+    margin: 5px 5px 0 0;  
+}
+
+.static-img-wrap {
+    margin: 20px 0; 
+}
+
+@media print {
+  @page { margin: 0; }
+  body { margin: 1.0cm; }
+  .--hide-from-pdf {
+    display: none !important;
+  }
+}
+
+.get-resource-btn.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  color: aliceblue;
+}
+
+    </style>
+</head>
+<body>
+    <div class="section">
+        <div id="map">
+            
+        </div>
+        <!-- <div class="static-img-wrap">
+            <div>Static Image:</div>
+            <img src="" class="map-img" alt="">
+        </div> -->
+        
+        <div class="day-events">
+            <div class="qr-toggle-wrap --hide-from-pdf" data-html2canvas-ignore="true">
+                <label for="qr-toggle">Toggle QR Codes</label> 
+                <input type="checkbox" name="qr-toggle" id="qr-toggle" class="qr-toggle">
+            </div>   
+            <div class="download-pdf-wrap --hide-from-pdf" data-html2canvas-ignore="true">
+                <input type="button" value="Download PDF SEDJA" class="get-resource-btn disabled download-pdf-sedja">  
+                <input type="button" value="Download PDF HTML2PDF" class="get-resource-btn disabled download-pdf-html2pdf">  
+                <input type="button" value="Download PDF Window.print()" class="get-resource-btn disabled download-pdf-windowPrint">  
+            </div>
+            <div class="day-event day-1-event"> 
+                <div class="day-head">Day 1</div>
+                <div class="single-event hide">
+                    <canvas id="qrcode-1" class="qrcode"></canvas> 
+                    <a href="" class="event-link" target="_blank"></a>
+                </div>  
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMmi6kGAOGfMzK4CBvNiVBB7T6OjGbsU4&libraries=places&v=weekly&language=en" ></script>     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="//www.sejda.com/js/sejda-js-api.min.js"></script>
+
+    <!-- <script>
+        HTMLCanvasElement.prototype.getContext = function(origFn) {
+            return function(type, attribs) {
+            attribs = attribs || {};
+            attribs.preserveDrawingBuffer = true;
+            return origFn.call(this, type, attribs);
+            };
+        }(HTMLCanvasElement.prototype.getContext);
+    </script> -->
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" 
+    integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+    <!-- <script src="./html2pdf/html2pdf.bundle.min.js"></script> -->
+    <script src="./html2pdf.bundle.min.js"></script>  
+    
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-promise/4.2.8/es6-promise.auto.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script> -->
+
+    <!-- <script>
+        HTMLCanvasElement.prototype.getContext = function(origFn) {
+            return function(type, attribs) {
+            attribs = attribs || {};
+            attribs.preserveDrawingBuffer = true;
+            return origFn.call(this, type, attribs);
+            };
+        }(HTMLCanvasElement.prototype.getContext);
+    </script> -->
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script> -->
+
+    <!-- <script src="./html2pdf/html2canvas.js"></script>
+    <script src="./html2pdf/html2pdf.min.js"></script> -->
+    
+    <script type="module" src="event-list.js"></script>
+</body>
+</html> 
+
+<!-- <script type="module" src="https://cdn.jsdelivr.net/gh/HelloKhonsu/DayPlanner/event-list_1.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/HelloKhonsu/DayPlanner/event-list_1.css">  --> 
